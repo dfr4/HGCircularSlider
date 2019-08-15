@@ -242,6 +242,18 @@ open class CircularSlider: UIControl {
         }
     }
     
+    
+    /**
+     * Angle in radians of the starting point for the track. Defaults to -∏/2 (top position).
+     */
+    @IBInspectable
+    open var circleInitialAngle: CGFloat = CircularSliderHelper.circleInitialAngle {
+        didSet {
+            setNeedsDisplay()
+        }
+    }
+    
+    
     // MARK: init methods
     
     /**
@@ -279,9 +291,9 @@ open class CircularSlider: UIControl {
         
         let valuesInterval = Interval(min: minimumValue, max: maximumValue, rounds: numberOfRounds)
         // get end angle from end value
-        let endAngle = CircularSliderHelper.scaleToAngle(value: endPointValue, inInterval: valuesInterval) + CircularSliderHelper.circleInitialAngle
+        let endAngle = CircularSliderHelper.scaleToAngle(value: endPointValue, inInterval: valuesInterval) + circleInitialAngle
         
-        drawFilledArc(fromAngle: CircularSliderHelper.circleInitialAngle, toAngle: endAngle, inContext: context)
+        drawFilledArc(fromAngle: circleInitialAngle, toAngle: endAngle, inContext: context)
         
         // draw end thumb
         endThumbTintColor.setFill()
@@ -307,7 +319,8 @@ open class CircularSlider: UIControl {
     override open func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
         // the position of the pan gesture
         let touchPosition = touch.location(in: self)
-        let startPoint = CGPoint(x: bounds.center.x, y: 0)
+        let centerPoint = CGPoint(x: bounds.maxX, y: bounds.center.y)
+        let startPoint = centerPoint.rotate(around: bounds.center, with: circleInitialAngle)
         let value = newValue(from: endPointValue, touch: touchPosition, start: startPoint)
         
         endPointValue = value
@@ -329,21 +342,13 @@ open class CircularSlider: UIControl {
         let interval = Interval(min: minimumValue, max: maximumValue, rounds: numberOfRounds)
         let deltaValue = CircularSliderHelper.delta(in: interval, for: angle, oldValue: oldValue)
         
-        var newValue = oldValue + deltaValue
-        let range = maximumValue - minimumValue
+        let newValue = oldValue + deltaValue
 
-        if !stopThumbAtMinMax {
-            if newValue > maximumValue {
-                newValue -= range
-            }
-            else if newValue < minimumValue {
-                newValue += range
-            }
+        if !(minimumValue...maximumValue ~= newValue) {
+            return oldValue
         }
 
         return newValue
     }
-    
-    
     
 }
