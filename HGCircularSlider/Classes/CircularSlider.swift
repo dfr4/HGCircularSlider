@@ -54,7 +54,7 @@ open class CircularSlider: UIControl {
      */
     @IBInspectable
     open var lineWidth: CGFloat = 5.0
-
+    
     /**
      * The width of the unselected track portion of the slider
      *
@@ -62,7 +62,7 @@ open class CircularSlider: UIControl {
      */
     @IBInspectable
     open var backtrackLineWidth: CGFloat = 5.0
-
+    
     /**
      * The shadow offset of the slider
      *
@@ -70,7 +70,7 @@ open class CircularSlider: UIControl {
      */
     @IBInspectable
     open var trackShadowOffset: CGPoint = .zero
-
+    
     /**
      * The color of the shadow offset of the slider
      *
@@ -78,7 +78,7 @@ open class CircularSlider: UIControl {
      */
     @IBInspectable
     open var trackShadowColor: UIColor = .gray
-
+    
     /**
      * The width of the thumb stroke line
      *
@@ -171,29 +171,29 @@ open class CircularSlider: UIControl {
             }
         }
     }
-
+    
     /**
-    * The offset of the thumb centre from the circle.
-    *
-    * You can use this to move the thumb inside or outside the circle of the slider
-    * If the value is grather than 0 the thumb will be displayed outside the cirlce
-    * And if the value is negative, the thumb will be displayed inside the circle 
-    */
+     * The offset of the thumb centre from the circle.
+     *
+     * You can use this to move the thumb inside or outside the circle of the slider
+     * If the value is grather than 0 the thumb will be displayed outside the cirlce
+     * And if the value is negative, the thumb will be displayed inside the circle
+     */
     @IBInspectable
     open var thumbOffset: CGFloat = 0.0 {
         didSet {
             setNeedsDisplay()
         }
     }
-
+    
     /**
-    * Stop the thumb going beyond the min/max.
-    *
-    */
+     * Stop the thumb going beyond the min/max.
+     *
+     */
     @IBInspectable
     open var stopThumbAtMinMax: Bool = false
-
-
+    
+    
     /**
      * The value of the endThumb (changed when the user change the position of the end thumb)
      *
@@ -213,7 +213,7 @@ open class CircularSlider: UIControl {
             else if endPointValue < minimumValue {
                 endPointValue = minimumValue
             }
-
+            
             setNeedsDisplay()
         }
     }
@@ -228,7 +228,7 @@ open class CircularSlider: UIControl {
             
             // if we use an image for the thumb, the radius of the image will be used
             let maxThumbRadius = max(thumbRadius, (self.endThumbImage?.size.height ?? 0) / 2)
-
+            
             // all elements should be inside the view rect, for that we should subtract the highest value between the radius of thumb and the line width
             radius -= max(lineWidth, (maxThumbRadius + thumbLineWidth + thumbOffset))
             return radius
@@ -241,18 +241,6 @@ open class CircularSlider: UIControl {
             setNeedsDisplay()
         }
     }
-    
-    
-    /**
-     * Angle in radians of the starting point for the track. Defaults to -∏/2 (top position).
-     */
-    @IBInspectable
-    open var circleInitialAngle: CGFloat = CircularSliderHelper.circleInitialAngle {
-        didSet {
-            setNeedsDisplay()
-        }
-    }
-    
     
     // MARK: init methods
     
@@ -277,8 +265,8 @@ open class CircularSlider: UIControl {
     internal func setup() {
         trackFillColor = tintColor
     }
-
-
+    
+    
     // MARK: Drawing methods
     
     /**
@@ -291,9 +279,9 @@ open class CircularSlider: UIControl {
         
         let valuesInterval = Interval(min: minimumValue, max: maximumValue, rounds: numberOfRounds)
         // get end angle from end value
-        let endAngle = CircularSliderHelper.scaleToAngle(value: endPointValue, inInterval: valuesInterval) + circleInitialAngle
+        let endAngle = CircularSliderHelper.scaleToAngle(value: endPointValue, inInterval: valuesInterval) + CircularSliderHelper.circleInitialAngle
         
-        drawFilledArc(fromAngle: circleInitialAngle, toAngle: endAngle, inContext: context)
+        drawFilledArc(fromAngle: CircularSliderHelper.circleInitialAngle, toAngle: endAngle, inContext: context)
         
         // draw end thumb
         endThumbTintColor.setFill()
@@ -319,8 +307,7 @@ open class CircularSlider: UIControl {
     override open func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
         // the position of the pan gesture
         let touchPosition = touch.location(in: self)
-        let centerPoint = CGPoint(x: bounds.maxX, y: bounds.center.y)
-        let startPoint = centerPoint.rotate(around: bounds.center, with: circleInitialAngle)
+        let startPoint = CGPoint(x: bounds.center.x, y: 0)
         let value = newValue(from: endPointValue, touch: touchPosition, start: startPoint)
         
         endPointValue = value
@@ -335,20 +322,29 @@ open class CircularSlider: UIControl {
     open override func endTracking(_ touch: UITouch?, with event: UIEvent?) {
         sendActions(for: .editingDidEnd)
     }
-
+    
     // MARK: Utilities methods
     internal func newValue(from oldValue: CGFloat, touch touchPosition: CGPoint, start startPosition: CGPoint) -> CGFloat {
         let angle = CircularSliderHelper.angle(betweenFirstPoint: startPosition, secondPoint: touchPosition, inCircleWithCenter: bounds.center)
         let interval = Interval(min: minimumValue, max: maximumValue, rounds: numberOfRounds)
         let deltaValue = CircularSliderHelper.delta(in: interval, for: angle, oldValue: oldValue)
         
-        let newValue = oldValue + deltaValue
-
-        if !(minimumValue...maximumValue ~= newValue) {
-            return oldValue
+        var newValue = oldValue + deltaValue
+        let range = maximumValue - minimumValue
+        
+        if !stopThumbAtMinMax {
+            if newValue > maximumValue {
+                newValue -= range
+            }
+            else if newValue < minimumValue {
+                newValue += range
+            }
         }
-
+        
         return newValue
     }
     
+    
+    
 }
+
