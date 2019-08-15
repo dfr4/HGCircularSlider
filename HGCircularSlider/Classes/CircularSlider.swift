@@ -149,7 +149,7 @@ open class CircularSlider: UIControl {
      * The default value of this property is 0.0.
      */
     @IBInspectable
-    open var minimumValue: CGFloat = 0.0 {
+    open var minimumValue: CGFloat = 36.66 {
         didSet {
             if endPointValue < minimumValue {
                 endPointValue = minimumValue
