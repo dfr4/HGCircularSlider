@@ -84,6 +84,20 @@ extension CircularSlider {
         // stroke Arc
         CircularSlider.drawArc(withArc: arc, lineWidth: lineWidth, mode: .stroke, inContext: context)
     }
+    
+    internal func drawArcToThumb(fromAngle startAngle: CGFloat, toAngle endAngle: CGFloat, inContext context: CGContext, withColor color: UIColor) {
+        diskFillColor.setFill()
+        color.setStroke()
+        
+        let circle = Circle(origin: bounds.center, radius: self.radius)
+        let arc = Arc(circle: circle, startAngle: startAngle, endAngle: endAngle)
+        
+        // fill Arc
+        CircularSlider.drawDisk(withArc: arc, inContext: context)
+        // stroke Arc
+        CircularSlider.drawArc(withArc: arc, lineWidth: lineWidth, mode: .stroke, inContext: context)
+    }
+    
 
     internal func drawShadowArc(fromAngle startAngle: CGFloat, toAngle endAngle: CGFloat, inContext context: CGContext) {
         trackShadowColor.setStroke()

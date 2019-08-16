@@ -30,6 +30,15 @@ open class RangeCircularSlider: CircularSlider {
 
     // MARK: Changing the Slider’s Appearance
     
+    @IBInspectable
+    open var colorToStart: UIColor = UIColor.red
+    
+    @IBInspectable
+    open var colorToEnd: UIColor = UIColor.blue
+    
+    
+    @IBInspectable
+    open var offsetValue: CGFloat = 7.0
     /**
      * The color used to tint start thumb
      * Ignored if the startThumbImage != nil
@@ -231,6 +240,13 @@ open class RangeCircularSlider: CircularSlider {
 
         drawShadowArc(fromAngle: startAngle, toAngle: endAngle, inContext: context)
         drawFilledArc(fromAngle: startAngle, toAngle: endAngle, inContext: context)
+        
+        
+        let minAngle = CircularSliderHelper.scaleToAngle(value: minimumValue + offsetValue, inInterval: interval) + CircularSliderHelper.circleInitialAngle
+        let maxAngle = CircularSliderHelper.scaleToAngle(value: maximumValue - offsetValue, inInterval: interval) + CircularSliderHelper.circleInitialAngle
+        
+        drawArcToThumb(fromAngle: minAngle, toAngle: startAngle, inContext: context, withColor: colorToStart)
+        drawArcToThumb(fromAngle: endAngle, toAngle: maxAngle, inContext: context, withColor: colorToEnd)
         
         // end thumb
         endThumbTintColor.setFill()
